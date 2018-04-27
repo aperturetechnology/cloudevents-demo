@@ -106,7 +106,7 @@ func (binary) FromRequest(data interface{}, r *http.Request) (*Context, error) {
 		}
 	}
 
-	if err := unmarshalEventData(ctx.ContentType, r.Body, &data); err != nil {
+	if err := unmarshalEventData(ctx.ContentType, r.Body, data); err != nil {
 		return nil, err
 	}
 

@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 	"time"
 )
 
@@ -105,7 +106,14 @@ func isXMLEncoding(encoding string) bool {
 }
 
 func unmarshalEventData(encoding string, reader io.Reader, data interface{}) error {
-	if isJSONEncoding(encoding) {
+	// If someone tried to marshal an event into an io.Reader, just assign our existing reader.
+	// (This is used by event.Mux to determine which type to unmarshal as)
+	readerPtrType := reflect.TypeOf((*io.Reader)(nil))
+	if reflect.TypeOf(data).ConvertibleTo(readerPtrType) {
+		reflect.ValueOf(data).Elem().Set(reflect.ValueOf(reader))
+		return nil
+	}
+	if isJSONEncoding(encoding) || encoding == "" {
 		return json.NewDecoder(reader).Decode(&data)
 	}
 
@@ -148,5 +156,5 @@ func FromRequest(data interface{}, r *http.Request) (*Context, error) {
 
 // NewRequest craetes an HTTP request for Structured content encoding.
 func NewRequest(urlString string, data interface{}, context Context) (*http.Request, error) {
-	return Binary.NewRequest(urlString, data, context)
+	return Structured.NewRequest(urlString, data, context)
 }
