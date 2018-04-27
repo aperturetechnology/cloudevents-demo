@@ -28,7 +28,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/elafros/eventing/pkg/event"
+	"github.com/google/cloudevents-demo/pkg/event"
 )
 
 type FirestoreDocument struct {

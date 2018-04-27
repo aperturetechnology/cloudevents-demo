@@ -3,7 +3,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 go_library(
     name = "go_default_library",
     srcs = ["main.go"],
-    importpath = "github.com/elafros/eventing/cmd/sendevent",
+    importpath = "github.com/google/cloudevents-demo/cmd/sendevent",
     visibility = ["//visibility:private"],
     deps = ["//pkg/event:go_default_library"],
 )
@@ -11,6 +11,6 @@ go_library(
 go_binary(
     name = "sendevent",
     embed = [":go_default_library"],
-    importpath = "github.com/elafros/eventing/cmd/sendevent",
+    importpath = "github.com/google/cloudevents-demo/cmd/sendevent",
     visibility = ["//visibility:public"],
 )
