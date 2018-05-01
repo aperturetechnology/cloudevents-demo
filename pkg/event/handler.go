@@ -26,7 +26,11 @@ import (
 	"github.com/golang/glog"
 )
 
-const usage = "event.NewHandler expected a `func(<data>, event.Context) error`"
+const (
+	usage = "event.NewHandler expected a `func(<data>, event.Context) error`"
+
+	googleLoadBalancerAgent = "GoogleHC/1.0"
+)
 
 type handler struct {
 	fnValue  reflect.Value
@@ -66,6 +70,11 @@ func Handler(fn interface{}) http.Handler {
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Respond OK to GKE loadbalancers
+	if r.Header.Get("User-Agent") == googleLoadBalancerAgent {
+		return
+	}
+
 	elemType := h.dataType
 	if h.dataType.Kind() == reflect.Ptr {
 		elemType = h.dataType.Elem()
@@ -112,6 +121,11 @@ func (m Mux) Handle(eventType string, fn interface{}) {
 
 // ServeHTTP implements http.Handler
 func (m Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Respond OK to GKE loadbalancers
+	if r.Header.Get("User-Agent") == googleLoadBalancerAgent {
+		return
+	}
+
 	var rawData io.Reader
 	context, err := FromRequest(&rawData, r)
 	if err != nil {

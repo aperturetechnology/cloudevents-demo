@@ -34,7 +34,7 @@ import (
 
 const (
 	awsObjectCreate   = "aws.s3.object.created"
-	azureObjectCreate = "azure.object.create"
+	azureObjectCreate = "Microsoft.Storage.BlobCreated"
 	gcsObjectCreate   = "google.storage.object.finalize"
 
 	envTwitterSecret = "TWITTER_SECRET"
