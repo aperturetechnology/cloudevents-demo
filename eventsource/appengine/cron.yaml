@@ -1,0 +1,4 @@
+cron:
+- description: Copy a file every 10m to trigger a CloudEvent
+  url: /publish/copy-file
+  schedule: every 10 minutes

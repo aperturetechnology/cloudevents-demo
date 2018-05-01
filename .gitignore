@@ -14,3 +14,6 @@ bazel-cloudevents-demo
 # no generated functions code
 /eventsource/functions/lib
 /eventsource/functions/node_modules
+
+# no py deps. Use pip install
+/eventsource/appengine/lib
