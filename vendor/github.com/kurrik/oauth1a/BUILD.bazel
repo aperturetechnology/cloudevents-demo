@@ -1,0 +1,21 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "oauth1a.go",
+        "userconfig.go",
+    ],
+    importpath = "github.com/kurrik/oauth1a",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "oauth1a_integration_test.go",
+        "oauth1a_test.go",
+    ],
+    embed = [":go_default_library"],
+    importpath = "github.com/kurrik/oauth1a",
+)

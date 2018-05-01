@@ -1,1 +1,7 @@
 .DS_Store
+debug.test
+bazel-bin
+bazel-genfiles
+bazel-out
+bazel-testlogs
+bazel-cloudevents-demo

@@ -1,0 +1,91 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "main.go",
+    ],
+    importpath = "github.com/google/cloudevents-demo/cmd/twittervision",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//pkg/event:go_default_library",
+        "//cmd/twittervision/app:go_default_library",
+        "//cmd/twittervision/azure:go_default_library",
+        "//cmd/twittervision/gcs:go_default_library",
+        "//cmd/twittervision/s3:go_default_library",
+        "//vendor/github.com/golang/glog:go_default_library",
+    ],
+)
+
+# This one target uses the name without a dash to become the
+# default directory target for `bazel build cmd/twittervision`
+go_binary(
+    name = "twittervision",
+    embed = [":go_default_library"],
+    importpath = "github.com/google/cloudevents-demo/cmd/twittervision",
+    pure = "on",
+    visibility = ["//visibility:public"],
+)
+
+load("@io_bazel_rules_docker//go:image.bzl", "go_image")
+
+go_image(
+    name = "image",
+    binary = ":twittervision",
+    visibility = ["//visibility:public"],
+)
+
+load("@k8s_object//:defaults.bzl", "k8s_object")
+
+k8s_object(
+    name = "twitter-secret",
+    template = ":twitter-secret.yaml",
+    visibility = ["//visibility:private"],
+)
+
+k8s_object(
+    name = "google-secret",
+    template = ":google-secret.yaml",
+    visibility = ["//visibility:private"],
+)
+
+k8s_object(
+    name = "deployment",
+    images = {
+        "twitter-vision:latest": ":image",
+    },
+    template = ":deployment.yaml",
+    visibility = ["//visibility:private"],
+)
+
+k8s_object(
+    name = "service",
+    template = ":service.yaml",
+    visibility = ["//visibility:private"],
+)
+
+load("@io_bazel_rules_k8s//k8s:objects.bzl", "k8s_objects")
+
+k8s_objects(
+    name = "secrets",
+    objects = [
+        ":twitter-secret",
+        ":google-secret",
+    ],
+)
+
+k8s_objects(
+    name = "compute",
+    objects = [
+        ":deployment",
+        ":service",
+    ],
+)
+
+k8s_objects(
+    name = "everything",
+    objects = [
+        ":secrets",
+        ":compute",
+    ],
+)
