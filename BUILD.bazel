@@ -1,15 +1,38 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("@io_bazel_rules_go//go:def.bzl", "gazelle", "go_library", "go_prefix", "go_test")
+
+go_prefix("github.com/google/cloudevents-demo")
+
+gazelle(
+    name = "gazelle",
+    external = "vendored",
+)
 
 go_library(
     name = "go_default_library",
-    srcs = ["event.go"],
-    importpath = "github.com/google/cloudevents-demo/pkg/event",
+    srcs = [
+        "doc.go",
+        "encoding_binary.go",
+        "encoding_structured.go",
+        "event.go",
+        "handler.go",
+    ],
+    importpath = "github.com/google/cloudevents-demo",
     visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/github.com/davecgh/go-spew/spew:go_default_library",
+        "//vendor/github.com/golang/glog:go_default_library",
+    ],
 )
 
 go_test(
     name = "go_default_xtest",
-    srcs = ["event_test.go"],
-    importpath = "github.com/google/cloudevents-demo/pkg/event_test",
-    deps = [":go_default_library"],
+    srcs = [
+        "event_test.go",
+        "handler_test.go",
+    ],
+    importpath = "github.com/google/cloudevents-demo_test",
+    deps = [
+        "//pkg/event:go_default_library",
+        "//vendor/github.com/davecgh/go-spew/spew:go_default_library",
+    ],
 )
