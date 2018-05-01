@@ -25,11 +25,11 @@ import (
 
 	"github.com/golang/glog"
 
-	"github.com/google/cloudevents-demo" // event
 	"github.com/google/cloudevents-demo/cmd/twittervision/app"
 	"github.com/google/cloudevents-demo/cmd/twittervision/azure"
 	"github.com/google/cloudevents-demo/cmd/twittervision/gcs"
 	"github.com/google/cloudevents-demo/cmd/twittervision/s3"
+	"github.com/google/cloudevents-demo/pkg/event"
 )
 
 const (

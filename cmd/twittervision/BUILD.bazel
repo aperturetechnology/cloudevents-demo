@@ -8,7 +8,7 @@ go_library(
     importpath = "github.com/google/cloudevents-demo/cmd/twittervision",
     visibility = ["//visibility:private"],
     deps = [
-        "//:go_default_library",
+        "//pkg/event:go_default_library",
         "//cmd/twittervision/app:go_default_library",
         "//cmd/twittervision/azure:go_default_library",
         "//cmd/twittervision/gcs:go_default_library",
@@ -17,8 +17,10 @@ go_library(
     ],
 )
 
+# This one target uses the name without a dash to become the
+# default directory target for `bazel build cmd/twittervision`
 go_binary(
-    name = "twitter-vision",
+    name = "twittervision",
     embed = [":go_default_library"],
     importpath = "github.com/google/cloudevents-demo/cmd/twittervision",
     pure = "on",
@@ -29,7 +31,7 @@ load("@io_bazel_rules_docker//go:image.bzl", "go_image")
 
 go_image(
     name = "image",
-    binary = ":twitter-vision",
+    binary = ":twittervision",
     visibility = ["//visibility:public"],
 )
 
@@ -86,11 +88,4 @@ k8s_objects(
         ":secrets",
         ":compute",
     ],
-)
-
-go_binary(
-    name = "twittervision",
-    embed = [":go_default_library"],
-    importpath = "github.com/google/cloudevents-demo/cmd/twittervision",
-    visibility = ["//visibility:public"],
 )

@@ -29,7 +29,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/google/cloudevents-demo"
+	"github.com/google/cloudevents-demo/pkg/event"
 )
 
 var (
