@@ -5,3 +5,12 @@ bazel-genfiles
 bazel-out
 bazel-testlogs
 bazel-cloudevents-demo
+.idea
+
+# Contributors should not change git when they add
+# their own projects locally
+.firebaserc
+
+# no generated functions code
+/eventsource/functions/lib
+/eventsource/functions/node_modules
