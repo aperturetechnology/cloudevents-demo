@@ -1,0 +1,26 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "app.go",
+    ],
+    importpath = "github.com/google/cloudevents-demo/cmd/twittervision/app",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//vendor/cloud.google.com/go/vision/apiv1:go_default_library",
+        "//vendor/github.com/golang/glog:go_default_library",
+        "//vendor/github.com/kurrik/oauth1a:go_default_library",
+        "//vendor/github.com/kurrik/twittergo:go_default_library",
+        "//vendor/golang.org/x/oauth2/google:go_default_library",
+        "//vendor/google.golang.org/api/option:go_default_library",
+        "//vendor/google.golang.org/genproto/googleapis/cloud/vision/v1:go_default_library",
+    ],
+)
+
+go_test(
+    name = "go_default_xtest",
+    srcs = ["app_test.go"],
+    importpath = "github.com/google/cloudevents-demo/cmd/twittervision/app_test",
+    deps = [":go_default_library"],
+)
