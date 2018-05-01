@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import * as request from 'request-promise-native';
 
-// This demo requires to config values to be set:
+// This demo requires two config values to be set:
 // bucket: the GCS bucket on which we'll listen. Be sure to
 //   set this bucket to be globally readable!
 // registry_db: the Firebase Realtime Database that knows who
