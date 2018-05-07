@@ -12,6 +12,12 @@
   version = "v0.21.0"
 
 [[projects]]
+  name = "github.com/aws/aws-lambda-go"
+  packages = ["events"]
+  revision = "fafa7e49388b8991caf99308e80655ba91816b72"
+  version = "v1.1.0"
+
+[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
   revision = "346938d642f2ec3594ed81d874461961cd0faa76"
@@ -140,9 +146,13 @@
   branch = "master"
   name = "google.golang.org/api"
   packages = [
+    "gensupport",
+    "googleapi",
+    "googleapi/internal/uritemplates",
     "googleapi/transport",
     "internal",
     "option",
+    "storage/v1",
     "transport",
     "transport/grpc",
     "transport/http"
@@ -223,6 +233,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8a19acf05a731a9ab9d64bc31cec163b797e758a42739820c30fc08e27eb3c6e"
+  inputs-digest = "c03f9b9d665fd14353f5d30a08bba548be55d2b9e1e07f87fec283d615247eb5"
   solver-name = "gps-cdcl"
   solver-version = 1
