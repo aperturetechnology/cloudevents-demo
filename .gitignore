@@ -14,3 +14,4 @@ bazel-cloudevents-demo
 # no generated functions code
 /eventsource/functions/lib
 /eventsource/functions/node_modules
+/eventsource/appengine/lib
