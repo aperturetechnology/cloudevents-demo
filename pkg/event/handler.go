@@ -28,8 +28,6 @@ import (
 
 const (
 	usage = "event.NewHandler expected a `func(<data>, event.Context) error`"
-
-	googleLoadBalancerAgent = "GoogleHC/1.0"
 )
 
 type handler struct {
@@ -70,11 +68,10 @@ func Handler(fn interface{}) http.Handler {
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Respond OK to GKE loadbalancers
-	if r.Header.Get("User-Agent") == googleLoadBalancerAgent {
+	// Respond OK to health checks
+	if r.Method == http.MethodGet {
 		return
 	}
-
 	elemType := h.dataType
 	if h.dataType.Kind() == reflect.Ptr {
 		elemType = h.dataType.Elem()
@@ -121,15 +118,15 @@ func (m Mux) Handle(eventType string, fn interface{}) {
 
 // ServeHTTP implements http.Handler
 func (m Mux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Respond OK to GKE loadbalancers
-	if r.Header.Get("User-Agent") == googleLoadBalancerAgent {
+	// Respond OK to health checks
+	if r.Method == http.MethodGet {
 		return
 	}
 
 	var rawData io.Reader
 	context, err := FromRequest(&rawData, r)
 	if err != nil {
-		glog.Warning("Failed to handle request", spew.Sdump(r))
+		glog.Warning("Failed to handle request %s %s %s: %s", r.Method, r.URL, spew.Sdump(r.Body), err)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(`Invalid request`))
 		return

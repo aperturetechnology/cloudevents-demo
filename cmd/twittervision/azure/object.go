@@ -14,7 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package azure is a quick vendor of types used in Azure cloud events.
+// Package azure demonstrates compatibilty with native Golang parsers by defining
+// a strongly-typed struct for the ObjectUpdate event.
+// Normally this would use an existing SDK, though there does not seem to be an
+// existing Golang type for Azure Blob Storage events.
 package azure
 
 // ObjectUpdate contains information about updated objects in Azure storage.

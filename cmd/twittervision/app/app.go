@@ -28,13 +28,13 @@ import (
 	"strings"
 
 	vision "cloud.google.com/go/vision/apiv1"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/option"
-	pb "google.golang.org/genproto/googleapis/cloud/vision/v1"
-
+	"github.com/davecgh/go-spew/spew"
 	"github.com/golang/glog"
 	"github.com/kurrik/oauth1a"
 	"github.com/kurrik/twittergo"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
+	pb "google.golang.org/genproto/googleapis/cloud/vision/v1"
 )
 
 type twitterConfig struct {
@@ -77,7 +77,7 @@ func New(twitterSecret, gcpSecret string) (*App, error) {
 
 // DescribeImage takes a URL and gives an english description of the image.
 // The description is phrased in english in the present tense (e.g. "contains ...", "is ...")
-func (a *App) DescribeImage(ctx context.Context, url string) (string, error) {
+func (a *App) DescribeImage(ctx context.Context, url string) ([]string, error) {
 	image := vision.NewImageFromURI(url)
 	res, err := a.vision.AnnotateImage(ctx, &pb.AnnotateImageRequest{
 		Image: image,
@@ -86,25 +86,70 @@ func (a *App) DescribeImage(ctx context.Context, url string) (string, error) {
 			{Type: pb.Feature_LABEL_DETECTION, MaxResults: 1},
 			{Type: pb.Feature_TEXT_DETECTION, MaxResults: 1},
 			{Type: pb.Feature_IMAGE_PROPERTIES, MaxResults: 1},
+			{Type: pb.Feature_WEB_DETECTION, MaxResults: 1},
+			{Type: pb.Feature_FACE_DETECTION, MaxResults: 3},
+			{Type: pb.Feature_LOGO_DETECTION, MaxResults: 1},
 		},
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
+	var descs = make([]string, 0, 1)
+
 	if len(res.LandmarkAnnotations) != 0 {
-		return fmt.Sprintf("contains the landmark %s", res.LandmarkAnnotations[0].Description), nil
+		descs = append(descs, fmt.Sprintf("I see the landmark %s", res.LandmarkAnnotations[0].Description))
 	}
+
+	if len(res.LogoAnnotations) != 0 && res.LogoAnnotations[0].GetConfidence() > 0.5 {
+		descs = append(descs, fmt.Sprintf("That's the logo for %s!", res.LogoAnnotations[0].Description))
+	}
+
+	if len(descs) == 0 && res.WebDetection != nil && len(res.WebDetection.BestGuessLabels) != 0 {
+		for _, label := range res.WebDetection.BestGuessLabels {
+			descs = append(descs, "I see "+label.Label)
+		}
+	}
+
 	isTexty := len(res.TextAnnotations) != 0 &&
 		len(res.LabelAnnotations) != 0 &&
 		res.LabelAnnotations[0].Description == "text"
 	if isTexty {
-		return fmt.Sprintf("contains the text %q", strings.TrimSpace(res.TextAnnotations[0].Description)), nil
+		descs = append(descs, fmt.Sprintf("I see the text %q", strings.TrimSpace(res.TextAnnotations[0].Description)))
 	}
-	if len(res.LabelAnnotations) != 0 {
-		return fmt.Sprintf("is about %s", res.LabelAnnotations[0].Description), nil
+
+	if len(res.FaceAnnotations) == 1 {
+		descs = append(descs, fmt.Sprintf("This person looks %s", topEmotion(res.FaceAnnotations)))
+	} else if len(res.FaceAnnotations) != 0 {
+		descs = append(descs, fmt.Sprintf("I see %d %s faces", len(res.FaceAnnotations), topEmotion(res.FaceAnnotations)))
 	}
-	// Should not happen. Labels seem to always be given.
-	return fmt.Sprintf("is tough to analyze"), nil
+
+	// Label annotations are often redundant with descriptions above.
+	if len(descs) == 0 && len(res.LabelAnnotations) != 0 {
+		descs = append(descs, "I see "+res.LabelAnnotations[0].Description)
+	}
+
+	if res.WebDetection != nil && len(res.WebDetection.PagesWithMatchingImages) != 0 {
+		descs = append(descs, fmt.Sprintf("I've seen this picture before at %q", res.WebDetection.PagesWithMatchingImages[0].Url))
+	}
+	return descs, nil
+}
+
+func topEmotion(faces []*pb.FaceAnnotation) string {
+	topName := "stoic"
+	topThreshold := pb.Likelihood_POSSIBLE
+	test := func(name string, confidence pb.Likelihood) {
+		if confidence > topThreshold {
+			topName = name
+			topThreshold = confidence
+		}
+	}
+	for _, face := range faces {
+		test("joyful", face.JoyLikelihood)
+		test("sorrowful", face.SorrowLikelihood)
+		test("angry", face.AngerLikelihood)
+		test("surprised", face.SurpriseLikelihood)
+	}
+	return topName
 }
 
 // PostImageToTwitter takes a public URL and uplaods it to Twitter to get a mediaID.
@@ -184,16 +229,9 @@ func (a *App) SendTweet(message string, mediaIds ...string) error {
 }
 
 func debugPrintTwitterError(err error) {
-	switch terr := err.(type) {
-	case twittergo.RateLimitError:
-		glog.Warningf("Rate limited, reset at %s\n", terr.Reset)
-	case twittergo.Errors:
-		for i, val := range terr.Errors() {
-			glog.Warningf("Error #%v - ", i+1)
-			glog.Warningf("Code: %v ", val.Code())
-			glog.Warningf("Msg: %v\n", val.Message())
-		}
-	default:
-		glog.Warningf("Problem parsing response: %v\n", err)
+	if rateErr, ok := err.(twittergo.RateLimitError); ok {
+		glog.Warningf("Rate limited, reset at %s\n", rateErr)
+	} else {
+		glog.Warningf("Err from twitter: %s\n", spew.Sdump(err))
 	}
 }

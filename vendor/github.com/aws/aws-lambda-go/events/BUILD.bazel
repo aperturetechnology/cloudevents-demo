@@ -1,0 +1,47 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "apigw.go",
+        "attributevalue.go",
+        "autoscaling.go",
+        "cloudwatch_events.go",
+        "cloudwatch_logs.go",
+        "cognito.go",
+        "config.go",
+        "dynamodb.go",
+        "epoch_time.go",
+        "firehose.go",
+        "kinesis.go",
+        "s3.go",
+        "sns.go",
+    ],
+    importpath = "github.com/aws/aws-lambda-go/events",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = [
+        "apigw_test.go",
+        "attributevalue_test.go",
+        "autoscaling_test.go",
+        "cloudwatch_events_test.go",
+        "cloudwatch_logs_test.go",
+        "cognito_test.go",
+        "config_test.go",
+        "dynamodb_test.go",
+        "epoch_time_test.go",
+        "firehose_test.go",
+        "kinesis_test.go",
+        "s3_test.go",
+        "sns_test.go",
+    ],
+    embed = [":go_default_library"],
+    importpath = "github.com/aws/aws-lambda-go/events",
+    deps = [
+        "//vendor/github.com/aws/aws-lambda-go/events/test:go_default_library",
+        "//vendor/github.com/stretchr/testify/assert:go_default_library",
+    ],
+)

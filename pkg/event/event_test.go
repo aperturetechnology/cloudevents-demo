@@ -191,7 +191,7 @@ func TestXmlStructuredDecoding(t *testing.T) {
 	}`
 
 	h := http.Header{}
-	h.Set(event.HeaderContentType, event.ContentTypeStructuredJSON)
+	h.Set(event.HeaderContentType, event.ContentTypeStructuredJSON+"; charset=utf-8")
 	req := &http.Request{
 		Header: h,
 		Body:   ioutil.NopCloser(strings.NewReader(eventText)),

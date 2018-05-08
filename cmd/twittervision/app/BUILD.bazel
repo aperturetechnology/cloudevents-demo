@@ -9,6 +9,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//vendor/cloud.google.com/go/vision/apiv1:go_default_library",
+        "//vendor/github.com/davecgh/go-spew/spew:go_default_library",
         "//vendor/github.com/golang/glog:go_default_library",
         "//vendor/github.com/kurrik/oauth1a:go_default_library",
         "//vendor/github.com/kurrik/twittergo:go_default_library",

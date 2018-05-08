@@ -22,14 +22,16 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/golang/glog"
 
 	"github.com/google/cloudevents-demo/cmd/twittervision/app"
 	"github.com/google/cloudevents-demo/cmd/twittervision/azure"
-	"github.com/google/cloudevents-demo/cmd/twittervision/gcs"
-	"github.com/google/cloudevents-demo/cmd/twittervision/s3"
 	"github.com/google/cloudevents-demo/pkg/event"
+
+	s3Events "github.com/aws/aws-lambda-go/events"
+	gcs "google.golang.org/api/storage/v1"
 )
 
 const (
@@ -41,16 +43,31 @@ const (
 	envGcpSecret     = "GOOGLE_SECRET"
 
 	address = ":8080"
+
+	msgFmt = `I got an image from %s!
+%s
+			
+{
+	EventID: %s
+	URL: %s
+}`
 )
 
-func describeImage(ctx context.Context, cloud, url string, a *app.App) error {
-	desc, err := a.DescribeImage(ctx, url)
+func describeImage(ctx context.Context, cloud, eventID, url string, a *app.App) error {
+	glog.Infof("Handling eventID %s", eventID)
+	descList, err := a.DescribeImage(ctx, url)
 	if err != nil {
 		glog.Errorf("Failed to describe %s: %s\n", url, err)
 		return err
 	}
+	var desc string
+	if len(descList) == 0 {
+		desc = "I don't really understand it"
+	} else {
+		desc = strings.Join(descList, "\n")
+	}
 
-	message := fmt.Sprintf("I got an image from %s! I think it %s (%s)", cloud, desc, url)
+	message := fmt.Sprintf(msgFmt, cloud, desc, eventID, url)
 	mediaID, err := a.PostImageToTwitter(ctx, url)
 	if err != nil {
 		glog.Warningf("Failed to upload %s to Twitter: %s", url, err)
@@ -77,23 +94,24 @@ func main() {
 	mux := event.NewMux()
 	glog.Infof("Listening for Google Cloud events of type %q", gcsObjectCreate)
 	mux.Handle(gcsObjectCreate, func(obj *gcs.Object, ctx *event.Context) error {
-		return describeImage(context.Background(), "Google Cloud Storage", obj.SelfLink, a)
+		return describeImage(context.Background(), "Google Cloud Storage", ctx.EventID, obj.MediaLink, a)
 	})
 
 	glog.Infof("Listening for AWS events of type %q", awsObjectCreate)
-	mux.Handle(awsObjectCreate, func(obj *s3.ObjectUpdate, ctx *event.Context) error {
-		url := fmt.Sprintf("https://s3.amazonaws.com/%s/%s", obj.Bucket.Name, obj.Object.Key)
-		return describeImage(context.Background(), "Amazon S3", url, a)
+	mux.Handle(awsObjectCreate, func(entity *s3Events.S3Entity, ctx *event.Context) error {
+		url := fmt.Sprintf("https://s3.amazonaws.com/%s/%s", entity.Bucket.Name, entity.Object.Key)
+		return describeImage(context.Background(), "Amazon S3", ctx.EventID, url, a)
 	})
 
 	glog.Infof("Listening for Azure events of type %q", azureObjectCreate)
 	mux.Handle(azureObjectCreate, func(obj *azure.ObjectUpdate, ctx *event.Context) error {
-		return describeImage(context.Background(), "Azure Blob Storage", obj.URL, a)
+		return describeImage(context.Background(), "Azure Blob Storage", ctx.EventID, obj.URL, a)
 	})
 
-	http.Handle("/", mux)
 	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
-		/* Response successfully to a healthz ping for GKE SSL serving */
+		// Response successfully to a healthz ping for GKE SSL serving
+		w.Write([]byte("OK"))
 	})
+	http.Handle("/", mux)
 	http.ListenAndServe(address, nil)
 }

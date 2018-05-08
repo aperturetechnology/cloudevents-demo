@@ -23,6 +23,7 @@ import (
 	"io"
 	"net/http"
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -144,7 +145,10 @@ func marshalEventData(encoding string, data interface{}) ([]byte, error) {
 
 // FromRequest parses a CloudEvent from any known encoding.
 func FromRequest(data interface{}, r *http.Request) (*Context, error) {
-	switch r.Header.Get(HeaderContentType) {
+	// Strip charset encodings from the content type before switching.
+	// TODO(inlined): will we actually honor anything but UTF-8? What is our strategy?
+	contentType := strings.Split(r.Header.Get(HeaderContentType), ";")[0]
+	switch contentType {
 	case ContentTypeStructuredJSON:
 		return Structured.FromRequest(data, r)
 	case ContentTypeBinaryJSON:
