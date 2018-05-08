@@ -46,3 +46,14 @@ export const eventsource = functions.storage
    });
   });
 });
+
+export const copyFile = functions.pubsub.topic('copy-file').onPublish(async () => {
+  const [files] = await admin.storage().bucket().getFiles({prefix: 'cloudevents-sources/'});
+  // The first result will be the directory itself.
+  files.shift();
+  console.log(`picking from ${files.length} files to copy`);
+  const file = files[Math.floor(Math.random() * files.length)];
+  console.log(`picked ${file.name}`);
+  await file.copy(eventApp.storage().bucket());
+  console.log('Done');
+});
