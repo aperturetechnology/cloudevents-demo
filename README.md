@@ -23,12 +23,10 @@ You can see a live version of this demo at
 * `service/github`: a work-in-progress set of Kubernetes API types that could
   be used to configure demos like this.
 
-## Using samples
-
-| product             | instructions                                                                                                 |
-+---------------------+--------------------------------------------------------------------------------------------------------------+
-| `pkg/event`         | Run `go get github.com/google/cloudevents-demo/`. Import `github.com/google/cloudevents-demo/pkg/event`      |
+| Product             | Instructions                                                                                                 |
+| --------------------- | ---------------------------------------------------------------------------------------------------|
+| `pkg/event`         | Run `go get github.com/google/cloudevents-demo/`. Import `github.com/google/cloudevents-demo/pkg/event` |
 | `cmd/sendevent`     | Run `go get github.com/google/cloudevents-demo/`. Run `go install github.com/cloudevents-demo/cmd/sendevent` |
-| `cmd/twittervision` | See separate [README](cmd/twittervision/README.md)                                                           |
-| `eventsource`       | See separate [README](eventsource/README.md)                                                                 |
-+---------------------+--------------------------------------------------------------------------------------------------------------+
+| `cmd/twittervision` | See separate [README](cmd/twittervision/README.md) |
+| `eventsource`       | See separate [README](eventsource/README.md) |
+
